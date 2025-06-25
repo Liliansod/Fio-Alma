@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
-import { useAuth } from '../context/AuthContext.jsx'; // Importa o hook de autenticação
+import { useAuth } from '../context/AuthContext.jsx';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -10,9 +10,8 @@ function Login() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth(); // Obtém a função de login do contexto de autenticação
+  const { login } = useAuth();
 
-  // Lida com o envio do formulário de login
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
@@ -30,11 +29,17 @@ function Login() {
 
       if (response.ok) {
         const data = await response.json();
-        // Chama a função de login do contexto para armazenar o token e dados do usuário
         login(data.token, data.user);
         setMessage('Login realizado com sucesso!');
-        // Redireciona para o painel do criador após o login
-        navigate('/painel-criador'); // Caminho atualizado
+
+        // REDIRECIONAMENTO CONDICIONAL BASEADO EM ROLE E ISFIRSTLOGIN
+        if (data.user.isFirstLogin) {
+          navigate('/trocar-senha-primeiro-acesso'); // Prioridade: sempre força troca de senha
+        } else if (data.user.role === 'admin') {
+          navigate('/admin-dashboard'); // Se for admin e já trocou a senha
+        } else {
+          navigate('/painel-criador'); // Se for criador e já trocou a senha
+        }
       } else {
         const errorData = await response.json();
         setError(`Erro ao fazer login: ${errorData.message || response.statusText}`);
@@ -81,7 +86,6 @@ function Login() {
 
             <button type="submit">ENTRAR</button>
 
-            {/* Link para a página de recuperação de senha (será criada) */}
             <Link to="/recuperar-senha" className="recuperar">
               Esqueceu a senha?
             </Link>
@@ -89,10 +93,8 @@ function Login() {
           {message && <p style={{ textAlign: 'center', marginTop: '1rem', color: 'green' }}>{message}</p>}
           {error && <p style={{ textAlign: 'center', marginTop: '1rem', color: 'red' }}>{error}</p>}
 
-
           <div className="registrar">
             <p>Ainda não tem uma senha?</p>
-            {/* Link para a página de registro */}
             <Link to="/registrar" className="botao-registro">
               REGISTRE-SE
             </Link>

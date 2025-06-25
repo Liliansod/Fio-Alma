@@ -2,13 +2,15 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
-const { sendEmail } = require('../utils/emailService'); // Importa o serviço de e-mail
-const authMiddleware = require('../middleware/authMiddleware'); // Middleware para proteger rotas (se necessário)
+const CreatorApplication = require('../models/CreatorApplication');
+const { sendEmail } = require('../utils/emailService');
+const authMiddleware = require('../middleware/authMiddleware');
 
 // Função auxiliar para gerar senhas aleatórias
 function generateRandomPassword(length = 10) {
-  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+\"";
   let password = "";
   for (let i = 0; i < length; i++) {
     password += charset.charAt(Math.floor(Math.random() * charset.length));
@@ -29,37 +31,9 @@ router.post('/register', async (req, res) => {
     user = new User({
       email,
       password,
-      // approved: false e isFirstLogin: true são os defaults no modelo User.js
     });
 
     await user.save();
-
-    // --- NOVO: ENVIAR E-MAIL DE NOTIFICAÇÃO PARA A EQUIPE DO ATELIÊ ---
-    const equipeEmail = 'ateliefioealma@gmail.com'; // E-mail da sua equipe
-    const subject = `Nova Solicitação de Cadastro de Criador: ${email}`;
-    const text = `
-      Um novo criador se cadastrou no Ateliê Fio & Alma:
-
-      E-mail do Criador: ${email}
-      ID do Criador (para aprovação): ${user._id}
-
-      Por favor, acesse o painel de administração (ou utilize a rota de aprovação manual para testes) para revisar e aprovar este criador.
-      Lembre-se de gerar uma senha temporária e enviá-la ao criador após a aprovação.
-    `;
-    const html = `
-      <p>Um novo criador se cadastrou no Ateliê Fio & Alma:</p>
-      <ul>
-        <li><strong>E-mail do Criador:</strong> ${email}</li>
-        <li><strong>ID do Criador (para aprovação):</strong> ${user._id}</li>
-      </ul>
-      <p>Por favor, acesse o painel de administração (ou utilize a rota de aprovação manual para testes) para revisar e aprovar este criador.</p>
-      <p>Lembre-se de <strong>gerar uma senha temporária e enviá-la ao criador</strong> (via a rota de aprovação) após a aprovação.</p>
-    `;
-
-    await sendEmail(equipeEmail, subject, text, html);
-    console.log(`E-mail de notificação de novo cadastro enviado para ${equipeEmail}`);
-    // --- FIM DO NOVO BLOCO DE E-MAIL ---
-
 
     res.status(201).json({
       message: 'Registro realizado com sucesso! Aguarde a aprovação da equipe para acessar o Espaço do Criador.',
@@ -97,7 +71,7 @@ router.post('/login', async (req, res) => {
         email: user.email,
         role: user.role,
         approved: user.approved,
-        isFirstLogin: user.isFirstLogin // Inclui a flag no payload do JWT
+        isFirstLogin: user.isFirstLogin
       }
     };
 
@@ -121,12 +95,13 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// --- Rota de ADMINISTRAÇÃO para Aprovar Criador (Para TESTES - Proteja em Produção!) ---
-router.post('/admin/approve-creator', async (req, res) => {
-  const { userId } = req.body; // ID do usuário a ser aprovado
+// Rota para aprovar criador (admin)
+router.post('/admin/approve-creator', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') { return res.status(403).json({ message: 'Acesso negado.' }); }
+  const { email } = req.body;
 
   try {
-    const user = await User.findById(userId);
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
@@ -135,17 +110,21 @@ router.post('/admin/approve-creator', async (req, res) => {
       return res.status(400).json({ message: 'Usuário já está aprovado.' });
     }
 
-    // 1. Aprova o usuário
     user.approved = true;
-    user.isFirstLogin = true; // Garante que, ao ser aprovado, será o primeiro login
+    user.isFirstLogin = true;
 
-    // 2. Gera uma senha temporária
     const tempPassword = generateRandomPassword();
-    user.password = tempPassword; // O middleware pre-save hasheará essa senha
+    user.password = tempPassword;
 
-    await user.save(); // Salva as mudanças no banco de dados
+    await user.save();
 
-    // 3. ENVIAR E-MAIL PARA O CRIADOR COM AS CREDENCIAIS TEMPORÁRIAS
+    await CreatorApplication.findOneAndUpdate(
+      { email: email, status: 'pendente' },
+      { $set: { status: 'aprovado' } },
+      { new: true }
+    );
+    console.log(`Status da aplicação de criador para ${email} atualizado para 'aprovado'.`);
+
     const subject = 'Sua conta Ateliê Fio & Alma foi aprovada!';
     const text = `
       Olá ${user.email},
@@ -188,19 +167,24 @@ router.post('/admin/approve-creator', async (req, res) => {
   }
 });
 
-// --- Rota para Rejeitar Criador (Opcional - Proteja em Produção!) ---
-router.post('/admin/reject-creator', async (req, res) => {
-  const { userId, reason } = req.body;
+// Rota para rejeitar criador (admin)
+router.post('/admin/reject-creator', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') { return res.status(403).json({ message: 'Acesso negado.' }); }
+  const { email, reason } = req.body;
+
   try {
-    const user = await User.findById(userId);
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
-    user.approved = false; // Garante que não está aprovado
-    user.isFirstLogin = false; // Não é o primeiro login se for rejeitado
-    await user.save();
 
-    // Opcional: Enviar e-mail de rejeição ao criador com o motivo
+    await CreatorApplication.findOneAndUpdate(
+      { email: email, status: 'pendente' },
+      { $set: { status: 'rejeitado' } },
+      { new: true }
+    );
+    console.log(`Status da aplicação de criador para ${email} atualizado para 'rejeitado'.`);
+
     const subject = 'Status da sua aplicação para o Ateliê Fio & Alma';
     const text = `Olá ${user.email}, infelizmente sua aplicação foi rejeitada pelo seguinte motivo: ${reason || 'Não especificado'}.`;
     const html = `<p>Olá <strong>${user.email}</strong>,</p><p>Infelizmente sua aplicação para o Ateliê Fio & Alma foi <strong>rejeitada</strong>.</p><p><strong>Motivo:</strong> ${reason || 'Não especificado'}.</p><p>Atenciosamente,<br>Equipe Ateliê Fio & Alma</p>`;
@@ -214,32 +198,22 @@ router.post('/admin/reject-creator', async (req, res) => {
   }
 });
 
-
-// --- Rota para Troca de Senha Após Primeiro Login ---
+// Rota para Troca de Senha Após Primeiro Login / Forçada
 router.post('/change-password', authMiddleware, async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
+  const { newPassword } = req.body;
 
   try {
-    const user = await User.findById(req.user.id); // req.user.id vem do JWT decodificado
+    const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
 
-    // Verifica a senha atual se não for o primeiro login
-    if (!user.isFirstLogin) {
-      const isMatch = await user.comparePassword(currentPassword);
-      if (!isMatch) {
-        return res.status(400).json({ message: 'Senha atual incorreta.' });
-      }
-    }
-
-    // Verifica se a nova senha é forte o suficiente ou atende a requisitos
     if (newPassword.length < 6) {
       return res.status(400).json({ message: 'A nova senha deve ter pelo menos 6 caracteres.' });
     }
 
-    user.password = newPassword; // A senha será hasheada pelo middleware pre-save
-    user.isFirstLogin = false; // Marca como não sendo o primeiro login
+    user.password = newPassword;
+    user.isFirstLogin = false;
     await user.save();
 
     res.status(200).json({ message: 'Senha alterada com sucesso!', isFirstLogin: false });
@@ -250,18 +224,37 @@ router.post('/change-password', authMiddleware, async (req, res) => {
   }
 });
 
-
 // Rota para solicitar redefinição de senha
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
+
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      // É uma boa prática não informar se o e-mail existe ou não por questões de segurança.
       return res.status(200).json({ message: 'Se o e-mail estiver registrado, um link para redefinição de senha será enviado.' });
     }
 
-    console.log(`[Placeholder] Solicitação de recuperação de senha para: ${email}. Um link seria enviado.`);
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.resetPasswordExpires = Date.now() + 3600000;
+
+    await user.save();
+
+    const resetUrl = `http://localhost:3000/redefinir-senha/${resetToken}`;
+
+    const subject = 'Redefinição de Senha - Ateliê Fio & Alma';
+    const text = `Você solicitou a redefinição de senha. Use este link para redefinir sua senha: ${resetUrl}\n\nEste link é válido por 1 hora.`;
+    const html = `
+      <p>Você solicitou a redefinição de senha para sua conta no Ateliê Fio & Alma.</p>
+      <p>Por favor, clique no link abaixo para redefinir sua senha:</p>
+      <p><a href="${resetUrl}">Redefinir Senha</a></p>
+      <p>Este link é válido por 1 hora.</p>
+      <p>Se você não solicitou isso, por favor, ignore este e-mail.</p>
+    `;
+
+    await sendEmail(user.email, subject, text, html);
+    console.log(`E-mail de redefinição de senha enviado para: ${user.email}`);
+
     res.status(200).json({ message: 'Se o e-mail estiver registrado, um link para redefinição de senha será enviado.' });
 
   } catch (err) {
@@ -270,20 +263,143 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
-// Rota para redefinir a senha (recebe o token e a nova senha)
+// Rota para redefinir a senha
 router.post('/reset-password/:token', async (req, res) => {
   const { token } = req.params;
   const { newPassword } = req.body;
 
   try {
-    console.log(`[Placeholder] Redefinir senha com token: ${token} para nova senha: ${newPassword}`);
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
-    res.status(200).json({ message: 'Senha redefinida com sucesso!' });
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Token inválido ou expirado. Por favor, solicite uma nova redefinição.' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'A nova senha deve ter pelo menos 6 caracteres.' });
+    }
+
+    user.password = newPassword;
+    user.isFirstLogin = false;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+
+    await user.save();
+
+    const subjectConfirmacao = 'Senha Redefinida - Ateliê Fio & Alma';
+    const textConfirmacao = `Olá ${user.email},\n\nSua senha foi redefinida com sucesso.`;
+    const htmlConfirmacao = `<p>Olá <strong>${user.email}</strong>,</p><p>Sua senha foi redefinida com sucesso.</p>`;
+    await sendEmail(user.email, subjectConfirmacao, textConfirmacao, htmlConfirmacao);
+    console.log(`E-mail de confirmação de redefinição de senha enviado para: ${user.email}`);
+
+    res.status(200).json({ message: 'Senha redefinida com sucesso! Você pode fazer login agora.' });
 
   } catch (err) {
     console.error('Erro ao redefinir senha:', err);
     res.status(500).send('Erro do servidor ao redefinir senha.');
   }
 });
+
+// Rota para deletar um usuário (Apenas Admin)
+router.delete('/admin/users/:id', authMiddleware, async (req, res) => {
+    // Verificar se o usuário logado é um administrador
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Acesso negado. Apenas administradores podem deletar usuários.' });
+    }
+
+    try {
+        const userId = req.params.id;
+        // Evitar que um admin tente deletar a si mesmo
+        if (req.user.id === userId) {
+            return res.status(400).json({ message: 'Você não pode deletar sua própria conta através desta interface.' });
+        }
+
+        const userToDelete = await User.findById(userId);
+        if (!userToDelete) {
+            return res.status(404).json({ message: 'Usuário não encontrado.' });
+        }
+
+        // Antes de deletar o usuário, é importante lidar com dados relacionados
+        // 1. Deletar todas as aplicações de criador associadas
+        await CreatorApplication.deleteMany({ email: userToDelete.email });
+        console.log(`Aplicações de criador associadas ao e-mail ${userToDelete.email} deletadas.`);
+        
+        // 2. Deletar todos os produtos associados a este criador (se houver)
+        // Você precisaria importar o modelo Product aqui: const Product = require('../models/Product');
+        // E então: await Product.deleteMany({ criador: userToDelete.email });
+        // console.log(`Produtos associados ao criador ${userToDelete.email} deletados.`);
+
+        await User.findByIdAndDelete(userId);
+        console.log(`Usuário ${userToDelete.email} deletado com sucesso.`);
+
+        res.status(200).json({ message: 'Usuário deletado com sucesso.' });
+    } catch (err) {
+        console.error('Erro ao deletar usuário:', err);
+        res.status(500).json({ message: 'Erro do servidor ao deletar usuário', error: err.message });
+    }
+});
+
+
+// NOVO: Rota para atualizar o perfil do usuário (Criador ou Admin)
+router.put('/profile', authMiddleware, async (req, res) => {
+  const { email } = req.body; // Por enquanto, apenas o email é editável aqui
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    // Se o email estiver sendo alterado, verifique se o novo email já existe
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Este e-mail já está em uso.' });
+      }
+      user.email = email;
+    }
+
+    // Se você adicionar outros campos ao User Schema (ex: nome, telefone),
+    // você os atualizaria aqui:
+    // if (req.body.nome) user.nome = req.body.nome;
+
+    await user.save();
+
+    // Re-gerar o token JWT para incluir o email atualizado (se alterado)
+    const payload = {
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        approved: user.approved,
+        isFirstLogin: user.isFirstLogin
+      }
+    };
+
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' },
+      (err, token) => {
+        if (err) throw err;
+        res.json({
+          message: 'Perfil atualizado com sucesso!',
+          token,
+          user: { id: user.id, email: user.email, role: user.role, approved: user.approved, isFirstLogin: user.isFirstLogin }
+        });
+      }
+    );
+
+  } catch (err) {
+    console.error('Erro ao atualizar perfil:', err);
+    res.status(500).json({ message: 'Erro do servidor ao atualizar perfil', error: err.message });
+  }
+});
+
 
 module.exports = router;

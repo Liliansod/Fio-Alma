@@ -23,10 +23,12 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  isFirstLogin: { // NOVA FLAG: Para controlar se é o primeiro login e exigir troca de senha
+  isFirstLogin: { // Flag para controlar se é o primeiro login e exigir troca de senha
     type: Boolean,
     default: true
   },
+  resetPasswordToken: String, // Campo para armazenar o token de redefinição de senha
+  resetPasswordExpires: Date, // Campo para armazenar a data de expiração do token
   dataRegistro: {
     type: Date,
     default: Date.now

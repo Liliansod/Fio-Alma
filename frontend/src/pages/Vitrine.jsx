@@ -63,7 +63,7 @@ function Vitrine() {
               <ProductCard
                 key={product._id} // Usar _id do MongoDB como chave
                 id={product._id} // Passar o _id como ID para o link
-                imageUrl={product.imagens && product.imagens.length > 0 ? product.imagens[0] : 'https://placehold.co/300x300/e0e0e0/ffffff?text=No+Image'} // Fallback para imagem
+                imageUrl={product.imagens && product.imagens.length > 0 ? `http://localhost:5000${product.imagens[0]}` : 'https://placehold.co/300x300/e0e0e0/ffffff?text=No+Image'} // Fallback para imagem
                 altText={product.titulo}
               />
             ))

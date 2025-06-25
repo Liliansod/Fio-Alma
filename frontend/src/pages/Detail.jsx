@@ -29,7 +29,9 @@ function Detail() {
         const response = await fetch(`http://localhost:5000/api/products/${id}`); // Requisição GET para um produto específico
         if (response.ok) {
           const data = await response.json();
-          setProduct(data);
+          // Certifique-se de que as URLs das imagens incluem o domínio do backend
+          const updatedImages = data.imagens.map(img => `http://localhost:5000${img}`);
+          setProduct({ ...data, imagens: updatedImages });
         } else if (response.status === 404) {
           setProductError('Produto não encontrado.');
         } else {
@@ -111,6 +113,7 @@ function Detail() {
   }
 
   if (!product) {
+    // Isso pode acontecer se o produto não for encontrado, mas o erro não foi capturado acima
     return (
       <>
         <Header />
@@ -131,7 +134,6 @@ function Detail() {
             <Carousel images={product.imagens} title={product.titulo} />
           ) : (
             <div className="imagem-produto" style={{ maxWidth: '300px' }}>
-              {/* CORREÇÃO AQUI: alt text mais conciso */}
               <img src="https://placehold.co/300x300/e0e0e0/ffffff?text=No+Image" alt="Produto sem imagem disponível" className="imagem-carrossel" />
               <p style={{ textAlign: 'center', marginTop: '1rem' }}>Nenhuma imagem disponível.</p>
             </div>

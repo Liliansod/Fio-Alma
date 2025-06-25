@@ -3,7 +3,6 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    
 }
   
 body {
@@ -12,14 +11,11 @@ body {
   background-color: #dce7d7;
   color: #222;
   line-height: 1.6;
-  
 }
 
 header .header-img {
   width: 100%;
   height: 460px;
-  /* display: block; */
-  /* height: auto; */
 }
 
 nav.menu {
@@ -53,6 +49,7 @@ nav.menu a:hover{
   padding: 0 1rem;
 }
 
+/* SEÇÃO SOBRE - Layout conforme exemplo */
 .text-img {
   display: flex;
   align-items: center;
@@ -75,17 +72,43 @@ nav.menu a:hover{
   flex: 1;
 }
 
+/* SEÇÃO IDEALIZADORES - Posicionamento centralizado */
 .idealizadores {
   display: flex;
-  align-items: flex-start;
-  gap: 1.5rem;
-  margin-top: 2rem;
   align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  margin: 4rem 0;
+  padding: 2rem;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
 }
 
 .idealizadores img {
-  width: 300px;
+  width: 250px;
   height: auto;
+  border-radius: 10px;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.idealizadores-text {
+  flex: 1;
+  max-width: 400px;
+}
+
+.idealizadores-text h3 {
+  font-size: 24px;
+  color: #3d2e06;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.idealizadores p {
+  font-size: 16px;
+  line-height: 1.6;
+  text-align: justify;
+  color: #333;
 }
 
 .foto-placeholder {
@@ -113,6 +136,10 @@ main.galeria {
   border-radius: 10px;
   height: 300px;
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .card img {
@@ -120,10 +147,33 @@ main.galeria {
   height: 100%;
   object-fit: cover;
   border-radius: 10px;
+  flex-grow: 1;
 }
 
-.container {
-  max-width: 1000px;
+.product-edit-image-preview {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin: 5px;
+}
+
+.current-images-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  border: 1px dashed #ccc;
+  padding: 10px;
+  border-radius: 5px;
+  min-height: 100px;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Container para a seção "Gostou?" */
+.formulario-container {
+  max-width: 900px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
@@ -250,6 +300,14 @@ p {
   font-family: Georgia, serif;
 }
 
+.form-box-criador form textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #777;
+  border-radius: 5px;
+  font-family: Georgia, serif;
+}
+
 .form-box-criador form button {
   padding: 0.5rem 1rem;
   background-color: #3d2e06;
@@ -287,8 +345,7 @@ p {
   font-size: 1rem;
 }
 
-/*detalhe*/
-
+/* Página de detalhes */
 .pagina-detalhe {
   display: flex;
   flex-direction: column;
@@ -313,6 +370,14 @@ p {
   max-width: 300px;
   border-radius: 12px;
   align-items: center;
+}
+
+.imagem-carrossel {
+  width: 100%;
+  height: 350px;
+  object-fit: contain;
+  border: 1px solid #ccc;
+  border-radius: 12px;
 }
 
 .setas-carrossel {
@@ -357,7 +422,8 @@ footer {
   background-color: #1E1817;
   align-items: center;
 }
-  footer .txt-social {
+
+footer .txt-social {
   width: 50%;
   color: #fff;
   font-family: "Caveat", serif;
@@ -382,4 +448,351 @@ footer .social i {
   width: 24px;
   height: 24px;
   filter: brightness(0) invert(1);
+}
+
+/* Estilos adicionais para Painel do Criador e Edição */
+.my-products-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+  justify-content: center;
+}
+
+.product-item {
+  background-color: #fcfcfc;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 1px 1px 5px rgba(0,0,0,0.1);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 350px;
+}
+
+.product-item h3 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+  color: #3d2e06;
+}
+
+.product-item p {
+  font-size: 1rem;
+  margin-bottom: 0.8rem;
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-list-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 0.8rem;
+}
+
+.product-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.product-actions .btn-view,
+.product-actions .btn-edit,
+.product-actions .btn-delete {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  min-width: 85px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-view {
+  background-color: #3d2e06;
+}
+.btn-view:hover {
+  background-color: #5a4b1d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.btn-edit {
+  background-color: #007bff;
+  color: #FFFFFF;
+}
+.btn-edit:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.btn-delete {
+  background-color: #b31f18;
+}
+.btn-delete:hover {
+  background-color: #d93025;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.edit-product-form {
+  text-align: left;
+}
+
+.edit-product-form label {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.edit-product-form input[type="text"],
+.edit-product-form textarea {
+  font-size: 1rem;
+  padding: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.form-actions button {
+  padding: 0.7rem 1.8rem;
+  font-size: 1.1rem;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: #fff;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Estilos adicionais para o Admin Dashboard */
+.admin-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 2px 3px 5px rgba(0,0,0,0.3);
+  background-color: #f1f1f1;
+}
+
+.admin-section h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: #3d2e06;
+  text-align: center;
+}
+
+.admin-list-container {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-list-item {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-list-item p {
+  font-size: 1.2rem;
+  margin-bottom: 0.2rem;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  justify-content: center;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.btn-admin-access {
+  display: inline-block;
+  padding: 0.7rem 1.5rem;
+  background-color: #3d2e06;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.btn-admin-access:hover {
+  background-color: #7e151b;
+}
+
+.button-logout {
+  background-color: #6c757d;
+  color: #fff;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}
+
+.button-logout:hover {
+  background-color: #5a6268;
+}
+
+/* Media Queries para Responsividade */
+@media (max-width: 768px) {
+  nav.menu {
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+  
+  nav.menu a {
+    font-size: 20px;
+  }
+  
+  .container, main.galeria, .container-criador, .pagina-detalhe {
+    padding: 0 0.5rem;
+  }
+  
+  .text-img, .text-img.reverse {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.5rem;
+  }
+  
+  .text-img p, .text-img.reverse p {
+    padding-left: 0;
+    padding-right: 0;
+    text-align: center;
+  }
+  
+  .text-img img, .idealizadores img {
+    width: 80%;
+    max-width: 250px;
+  }
+  
+  .idealizadores {
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+  }
+  
+  .idealizadores-text {
+    max-width: 100%;
+  }
+  
+  .detalhe-produto {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .descricao-produto {
+    text-align: center;
+  }
+  
+  .formulario .campo-duplo {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  footer .txt-social {
+    font-size: 40px;
+    margin: auto 10px;
+  }
+  
+  footer .social {
+    gap: 5px;
+  }
+  
+  footer .social a {
+    font-size: 30px;
+  }
+
+  .logo {
+    width: 250px;
+  }
+
+  .form-box-criador {
+    padding: 1rem;
+  }
+
+  .form-box-criador h2 {
+    font-size: 1.5rem;
+  }
+
+  .form-box-criador form {
+    font-size: 1.2rem;
+  }
+
+  .my-products-list {
+    grid-template-columns: 1fr;
+  }
+
+  .product-item {
+    height: auto;
+  }
 }

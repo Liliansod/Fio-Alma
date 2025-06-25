@@ -7,12 +7,15 @@ import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Detail from './pages/Detail.jsx';
 import CreatorDashboard from './pages/CreatorDashboard.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
+import EditProduct from './pages/EditProduct.jsx';
+import EditProfile from './pages/EditProfile.jsx'; // NOVA IMPORTAÇÃO
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
 import ResetPassword from './pages/ResetPassword.jsx';
-import ForcePasswordChange from './pages/ForcePasswordChange.jsx'; // Nova Importação
+import ForcePasswordChange from './pages/ForcePasswordChange.jsx';
 import { Link } from 'react-router-dom';
-
+// Não é necessário importar useAuth aqui, pois já está no ProtectedRoute e nos componentes que o utilizam.
 
 function App() {
   return (
@@ -26,18 +29,48 @@ function App() {
         <Route path="/detalhe/:id" element={<Detail />} />
         <Route path="/recuperar-senha" element={<ForgotPassword />} />
         <Route path="/redefinir-senha/:token" element={<ResetPassword />} />
-        {/* NOVA ROTA para troca de senha obrigatória */}
-        <Route path="/trocar-senha-primeiro-acesso" element={<ForcePasswordChange />} />
+        <Route path="/trocar-senha-primeiro-acesso" element={<ProtectedRoute><ForcePasswordChange /></ProtectedRoute>} />
 
-        {/* Rota protegida para o Painel do Criador */}
+        {/* Rotas Protegidas para Criadores */}
         <Route
           path="/painel-criador"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute roles={['criador', 'admin']}>
               <CreatorDashboard />
             </ProtectedRoute>
           }
         />
+
+        {/* Rota Protegida para Edição de Produto */}
+        <Route
+          path="/editar-produto/:id"
+          element={
+            <ProtectedRoute roles={['criador', 'admin']}>
+              <EditProduct />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* NOVA Rota Protegida para Edição de Perfil */}
+        <Route
+          path="/editar-perfil" // Nova rota para edição de perfil
+          element={
+            <ProtectedRoute roles={['criador', 'admin']}>
+              <EditProfile />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rota Protegida para Administradores */}
+        <Route
+          path="/admin-dashboard"
+          element={
+            <ProtectedRoute roles={['admin']}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/aguardando-aprovacao" element={
           <main className="container-criador" style={{ textAlign: 'center', padding: '2rem' }}>
             <h2>Aguardando Aprovação</h2>
