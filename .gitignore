@@ -1,0 +1,28 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnp/
+.pnp.js
+
+# IDEs e Editores
+.vscode/
+.idea/
+
+# Artefatos de Build (ajuste conforme necessário para seu projeto)
+dist/
+build/
+
+# Logs
+*.log
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Arquivos temporários
+tmp/
