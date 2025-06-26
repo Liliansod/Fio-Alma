@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+// Adicionada a importação do Link
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import Header from '../components/Header.jsx';
 import Footer from '../components/Footer.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -17,7 +18,7 @@ function EditProduct() {
 
   useEffect(() => {
     // Redireciona se não estiver autenticado ou não tiver permissão
-    if (!isAuthenticated || (user.role !== 'criador' && user.role !== 'admin')) {
+    if (!isAuthenticated || (user && user.role !== 'criador' && user.role !== 'admin')) {
       navigate('/espaco-criador');
       return;
     }
@@ -131,6 +132,7 @@ function EditProduct() {
         <Header />
         <main className="container-criador" style={{ textAlign: 'center', padding: '2rem' }}>
           <p style={{ color: 'red' }}>{error}</p>
+          {/* Usando Link para navegar de volta */}
           <Link to="/painel-criador" className="btn-secondary">Voltar ao Painel</Link>
         </main>
         <Footer />
@@ -144,6 +146,7 @@ function EditProduct() {
         <Header />
         <main className="container-criador" style={{ textAlign: 'center', padding: '2rem' }}>
           <h2>Produto não encontrado.</h2>
+          {/* Usando Link para navegar de volta */}
           <Link to="/painel-criador" className="btn-secondary">Voltar ao Painel</Link>
         </main>
         <Footer />
@@ -212,7 +215,8 @@ function EditProduct() {
             </label>
             <div className="form-actions">
               <button type="submit">Salvar Alterações</button>
-              <button type="button" onClick={() => navigate('/painel-criador')} className="btn-secondary">Cancelar</button>
+              {/* Usando Link para navegar de volta */}
+              <Link to="/painel-criador" className="btn-secondary">Cancelar</Link>
             </div>
           </form>
           {message && <p style={{ textAlign: 'center', color: 'green', marginTop: '1rem' }}>{message}</p>}

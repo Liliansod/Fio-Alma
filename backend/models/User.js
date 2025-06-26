@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
     trim: true,
-    lowercase: true,
+    lowercase: true, // Garante que o email seja salvo em minúsculas
     match: [/^\S+@\S+\.\S+$/, 'Por favor, use um endereço de e-mail válido.']
   },
   password: {
@@ -35,7 +35,10 @@ const userSchema = new mongoose.Schema({
   }
 });
 
+// Middleware para hash de senha antes de salvar
 userSchema.pre('save', async function(next) {
+  // Hash da senha SOMENTE se o campo 'password' foi modificado (novo usuário ou senha alterada)
+  // Ou se o usuário está sendo criado, `isNew` será true
   if (!this.isModified('password')) {
     return next();
   }

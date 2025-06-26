@@ -5,7 +5,8 @@ import Footer from '../components/Footer.jsx';
 import { useAuth } from '../context/AuthContext.jsx'; // Para obter/atualizar o usuário
 
 function EditProfile() {
-  const { user, isAuthenticated, login, logout } = useAuth(); // Usar 'login' para atualizar o contexto
+  // Removido 'logout' daqui para resolver o aviso 'never used'
+  const { user, isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({

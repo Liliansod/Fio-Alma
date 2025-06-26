@@ -16,7 +16,7 @@ const creatorApplicationSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    lowercase: true,
+    lowercase: true, // Garante que o email seja salvo em minúsculas
     match: [/^\S+@\S+\.\S+$/, 'Por favor, use um endereço de e-mail válido.']
   },
   mensagem: {

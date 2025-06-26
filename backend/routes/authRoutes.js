@@ -23,13 +23,13 @@ router.post('/register', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: email.toLowerCase() }); // Busca por email em minúsculas
     if (user) {
       return res.status(400).json({ message: 'Usuário com este e-mail já existe.' });
     }
 
     user = new User({
-      email,
+      email: email.toLowerCase(), // Salva em minúsculas
       password,
     });
 
@@ -51,7 +51,7 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email: email.toLowerCase() }); // Busca por email em minúsculas
     if (!user) {
       return res.status(400).json({ message: 'Credenciais inválidas.' });
     }
@@ -95,66 +95,153 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Rota para aprovar criador (admin)
+// Rota para aprovar criador (admin) - Centralizada e Corrigida
 router.post('/admin/approve-creator', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') { return res.status(403).json({ message: 'Acesso negado.' }); }
-  const { email } = req.body;
+  const { email } = req.body; // Recebe o e-mail da aplicação
 
   try {
-    const user = await User.findOne({ email });
+    // 1. Encontrar a aplicação do criador pelo email
+    const application = await CreatorApplication.findOne({ email: email.toLowerCase() });
+    if (!application) {
+      return res.status(404).json({ message: 'Aplicação não encontrada.' });
+    }
+
+    // 2. Encontrar ou criar o usuário associado (usando o email da aplicação)
+    let user = await User.findOne({ email: application.email.toLowerCase() });
+
     if (!user) {
-      return res.status(404).json({ message: 'Usuário não encontrado.' });
+      // Se o usuário não existe (caso de alguém que preencheu o faça parte mas não se registrou)
+      const tempPassword = generateRandomPassword();
+      user = new User({
+        email: application.email.toLowerCase(),
+        password: tempPassword, // Será hasheada pelo pre-save middleware
+        role: 'criador',
+        approved: true,
+        isFirstLogin: true
+      });
+      await user.save();
+      console.log(`Admin: Novo usuário criado a partir da aplicação: ${user.email}`);
+    } else {
+      // Se o usuário já existe
+      if (user.approved) {
+        // Se o usuário já está aprovado, não precisamos gerar nova senha, apenas atualizar aplicação se necessário.
+        // Isso impede o erro "Usuário já está aprovado" se o admin tentar aprovar novamente um usuário já aprovado.
+        console.log(`Admin: Usuário ${user.email} já está aprovado. Atualizando status da aplicação se pendente.`);
+      } else {
+        // Se o usuário existe mas ainda não está aprovado
+        const tempPassword = generateRandomPassword();
+        user.password = tempPassword; // Atribui nova senha temporária (será hasheada)
+        user.approved = true;
+        user.isFirstLogin = true;
+        await user.save();
+        console.log(`Admin: Usuário existente ${user.email} aprovado e senha temporária gerada.`);
+      }
     }
 
-    if (user.approved) {
-      return res.status(400).json({ message: 'Usuário já está aprovado.' });
+    // 3. Atualizar o status da aplicação para 'aprovado'
+    // Garantir que o status da aplicação é 'pendente' antes de tentar mudar
+    if (application.status !== 'aprovado') {
+        application.status = 'aprovado';
+        await application.save();
+        console.log(`Status da aplicação de criador para ${application.email} atualizado para 'aprovado'.`);
+    } else {
+        console.log(`Aplicação para ${application.email} já está aprovada, sem necessidade de atualização.`);
     }
-
-    user.approved = true;
-    user.isFirstLogin = true;
-
-    const tempPassword = generateRandomPassword();
-    user.password = tempPassword;
-
-    await user.save();
-
-    await CreatorApplication.findOneAndUpdate(
-      { email: email, status: 'pendente' },
-      { $set: { status: 'aprovado' } },
-      { new: true }
-    );
-    console.log(`Status da aplicação de criador para ${email} atualizado para 'aprovado'.`);
-
+    
+    // 4. Enviar e-mail para o criador com as credenciais (se o usuário foi recém-aprovado ou teve a senha resetada)
     const subject = 'Sua conta Ateliê Fio & Alma foi aprovada!';
-    const text = `
-      Olá ${user.email},
+    let text, html;
 
-      Sua aplicação para o Ateliê Fio & Alma foi aprovada!
-      Você já pode acessar o Espaço do Criador.
+    if (!user.approved || user.isFirstLogin) { // Se o usuário acabou de ser aprovado ou precisa trocar a senha
+      text = `
+        Olá ${user.email},
 
-      Suas credenciais temporárias são:
-      E-mail: ${user.email}
-      Senha: ${tempPassword}
+        Sua aplicação para o Ateliê Fio & Alma foi aprovada e sua conta criada!
+        Você já pode acessar o Espaço do Criador.
 
-      Por segurança, você será solicitado a trocar esta senha no seu primeiro login.
-      Acesse: http://localhost:3000/espaco-criador
+        Suas credenciais temporárias são:
+        E-mail: ${user.email}
+        Senha: ${user.password}  // ATENÇÃO: Aqui o password já foi hasheado, deve-se usar a tempPassword original.
+                                 // Para corrigir, a tempPassword original precisa ser passada para o email.
+                                 // Vou usar a tempPassword gerada acima, antes do save.
+                                 // Se o user já existia e não geramos nova senha temporária, o email será diferente.
+      `;
+      html = `
+        <p>Olá <strong>${user.email}</strong>,</p>
+        <p>Sua aplicação para o Ateliê Fio & Alma foi <strong>aprovada e sua conta criada</strong>!</p>
+        <p>Você já pode acessar o Espaço do Criador.</p>
+        <p>Suas credenciais temporárias são:</p>
+        <ul>
+          <li><strong>E-mail:</strong> ${user.email}</li>
+          <li><strong>Senha:</strong> <code>${user.password}</code></li>
+        </ul>
+        <p>Por segurança, você será solicitado a trocar esta senha no seu primeiro login.</p>
+        <p>Acesse o Espaço do Criador: <a href="http://localhost:3000/espaco-criador">Clique aqui</a></p>
+        <p>Atenciosamente,<br>Equipe Ateliê Fio & Alma</p>
+      `;
+      // Correção: Para enviar a senha temporária no e-mail, precisamos capturá-la ANTES de user.save()
+      // O ideal é que a `generateRandomPassword` seja chamada e a senha NÃO HASHEADA seja usada no email.
+      // A lógica atual já faz isso, mas o `user.password` dentro do email já está hasheado.
+      // Vamos ajustar a forma como a tempPassword é usada para o email.
+    } else {
+      // Se o usuário já existia e já estava aprovado, apenas um email de confirmação sem senha
+      text = `
+        Olá ${user.email},
 
-      Atenciosamente,
-      Equipe Ateliê Fio & Alma
-    `;
-    const html = `
-      <p>Olá <strong>${user.email}</strong>,</p>
-      <p>Sua aplicação para o Ateliê Fio & Alma foi <strong>aprovada</strong>!</p>
-      <p>Você já pode acessar o Espaço do Criador.</p>
-      <p>Suas credenciais temporárias são:</p>
-      <ul>
-        <li><strong>E-mail:</strong> ${user.email}</li>
-        <li><strong>Senha:</strong> <code>${tempPassword}</code></li>
-      </ul>
-      <p>Por segurança, você será solicitado a trocar esta senha no seu primeiro login.</p>
-      <p>Acesse o Espaço do Criador: <a href="http://localhost:3000/espaco-criador">Clique aqui</a></p>
-      <p>Atenciosamente,<br>Equipe Ateliê Fio & Alma</p>
-    `;
+        Sua aplicação para o Ateliê Fio & Alma foi aprovada!
+        Você já pode acessar o Espaço do Criador com suas credenciais existentes.
+
+        Atenciosamente,
+        Equipe Ateliê Fio & Alma
+      `;
+      html = `
+        <p>Olá <strong>${user.email}</strong>,</p>
+        <p>Sua aplicação para o Ateliê Fio & Alma foi <strong>aprovada</strong>!</p>
+        <p>Você já pode acessar o Espaço do Criador com suas credenciais existentes.</p>
+        <p>Acesse o Espaço do Criador: <a href="http://localhost:3000/espaco-criador">Clique aqui</a></p>
+        <p>Atenciosamente,<br>Equipe Ateliê Fio & Alma</p>
+      `;
+    }
+
+    // Reajuste da lógica para a senha no email:
+    let passwordToSendInEmail = '';
+    if (!user.approved || user.isFirstLogin) { // Se acabou de ser aprovado ou precisa trocar senha
+      const initialPassword = generateRandomPassword(); // Gera uma nova senha NÃO HASHEADA
+      user.password = initialPassword; // Será hasheada no pre-save
+      await user.save(); // Salva o usuário com a nova senha hasheada
+      passwordToSendInEmail = initialPassword; // Usa a senha NÃO HASHEADA para o email
+
+      text = `
+        Olá ${user.email},
+
+        Sua aplicação para o Ateliê Fio & Alma foi aprovada e sua conta criada!
+        Você já pode acessar o Espaço do Criador.
+
+        Suas credenciais temporárias são:
+        E-mail: ${user.email}
+        Senha: ${passwordToSendInEmail}
+
+        Por segurança, você será solicitado a trocar esta senha no seu primeiro login.
+        Acesse: http://localhost:3000/espaco-criador
+
+        Atenciosamente,
+        Equipe Ateliê Fio & Alma
+      `;
+      html = `
+        <p>Olá <strong>${user.email}</strong>,</p>
+        <p>Sua aplicação para o Ateliê Fio & Alma foi <strong>aprovada e sua conta criada</strong>!</p>
+        <p>Você já pode acessar o Espaço do Criador.</p>
+        <p>Suas credenciais temporárias são:</p>
+        <ul>
+          <li><strong>E-mail:</strong> ${user.email}</li>
+          <li><strong>Senha:</strong> <code>${passwordToSendInEmail}</code></li>
+        </ul>
+        <p>Por segurança, você será solicitado a trocar esta senha no seu primeiro login.</p>
+        <p>Acesse o Espaço do Criador: <a href="http://localhost:3000/espaco-criador">Clique aqui</a></p>
+        <p>Atenciosamente,<br>Equipe Ateliê Fio & Alma</p>
+      `;
+    }
 
     await sendEmail(user.email, subject, text, html);
     console.log(`E-mail de aprovação enviado para ${user.email}`);
@@ -167,23 +254,30 @@ router.post('/admin/approve-creator', authMiddleware, async (req, res) => {
   }
 });
 
+
 // Rota para rejeitar criador (admin)
 router.post('/admin/reject-creator', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') { return res.status(403).json({ message: 'Acesso negado.' }); }
   const { email, reason } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() }); // Busca por email em minúsculas
     if (!user) {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
 
+    // Atualiza o status da CreatorApplication
     await CreatorApplication.findOneAndUpdate(
-      { email: email, status: 'pendente' },
+      { email: email.toLowerCase() }, // Garante que busca por email em minúsculas
       { $set: { status: 'rejeitado' } },
       { new: true }
     );
     console.log(`Status da aplicação de criador para ${email} atualizado para 'rejeitado'.`);
+
+    // Define o usuário como não aprovado, se ele existia
+    user.approved = false;
+    user.isFirstLogin = false; // Não é o primeiro login se for rejeitado
+    await user.save();
 
     const subject = 'Status da sua aplicação para o Ateliê Fio & Alma';
     const text = `Olá ${user.email}, infelizmente sua aplicação foi rejeitada pelo seguinte motivo: ${reason || 'Não especificado'}.`;
@@ -229,7 +323,7 @@ router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() }); // Busca por email em minúsculas
     if (!user) {
       return res.status(200).json({ message: 'Se o e-mail estiver registrado, um link para redefinição de senha será enviado.' });
     }
