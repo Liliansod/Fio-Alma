@@ -60,7 +60,7 @@ function AdminDashboard() {
       }
 
       // Busca aplicações de criadores
-      const applicationsRes = await fetch('http://localhost:5000/api/admin/applications', { // Rota em adminRoutes.js
+      const applicationsRes = await fetch('https://fio-alma-main.onrender.com/api/admin/applications', { // Rota em adminRoutes.js
         headers: { 'x-auth-token': token }
       });
       if (!applicationsRes.ok) throw new Error('Falha ao buscar aplicações.');
@@ -68,7 +68,7 @@ function AdminDashboard() {
       setApplications(applicationsData);
 
       // Busca usuários
-      const usersRes = await fetch('http://localhost:5000/api/admin/users', { // Rota em adminRoutes.js
+      const usersRes = await fetch('https://fio-alma-main.onrender.com/api/admin/users', { // Rota em adminRoutes.js
         headers: { 'x-auth-token': token }
       });
       if (!usersRes.ok) throw new Error('Falha ao buscar usuários.');
@@ -76,15 +76,15 @@ function AdminDashboard() {
       setUsers(usersData);
 
       // Busca produtos
-      const productsRes = await fetch('http://localhost:5000/api/products', { // Rota em productRoutes.js (pública)
+      const productsRes = await fetch('https://fio-alma-main.onrender.com/api/products', { // Rota em productRoutes.js (pública)
         headers: { 'x-auth-token': token } // Pode exigir token se a rota foi protegida
       });
       if (!productsRes.ok) throw new Error('Falha ao buscar produtos.');
       const productsData = await productsRes.json();
       const productsWithFullImageUrls = productsData.map(p => ({
         ...p,
-        // Garante que o caminho da imagem esteja correto (sem http://localhost:5000/uploads duplicado)
-        imagens: p.imagens.map(img => img.startsWith('http') ? img : `http://localhost:5000${img}`)
+        // Garante que o caminho da imagem esteja correto (sem https://fio-alma-main.onrender.com/uploads duplicado)
+        imagens: p.imagens.map(img => img.startsWith('http') ? img : `https://fio-alma-main.onrender.com${img}`)
       }));
       setProducts(productsWithFullImageUrls);
 
@@ -109,7 +109,7 @@ function AdminDashboard() {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/auth/admin/approve-creator', { // Rota em authRoutes.js
+      const res = await fetch('https://fio-alma-main.onrender.com/api/auth/admin/approve-creator', { // Rota em authRoutes.js
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ function AdminDashboard() {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/auth/admin/reject-creator', { // Rota em authRoutes.js
+      const res = await fetch('https://fio-alma-main.onrender.com/api/auth/admin/reject-creator', { // Rota em authRoutes.js
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -177,7 +177,7 @@ function AdminDashboard() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/auth/admin/users/${userId}`, { // Rota em authRoutes.js
+      const res = await fetch(`https://fio-alma-main.onrender.com/api/auth/admin/users/${userId}`, { // Rota em authRoutes.js
         method: 'DELETE',
         headers: {
           'x-auth-token': token
@@ -204,7 +204,7 @@ function AdminDashboard() {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/products/${productId}`, { // Rota em productRoutes.js
+      const res = await fetch(`https://fio-alma-main.onrender.com/api/products/${productId}`, { // Rota em productRoutes.js
         method: 'DELETE',
         headers: { 'x-auth-token': token }
       });
@@ -341,7 +341,7 @@ function AdminDashboard() {
                     <p><strong>Telefone:</strong> {app.telefone}</p>
                     <p><strong>Mensagem:</strong> {app.mensagem}</p>
                     {app.imagemUrl && (
-                      <p><strong>Imagem da Aplicação:</strong> <a href={`http://localhost:5000${app.imagemUrl}`} target="_blank" rel="noopener noreferrer">Ver Imagem</a></p>
+                      <p><strong>Imagem da Aplicação:</strong> <a href={`https://fio-alma-main.onrender.com${app.imagemUrl}`} target="_blank" rel="noopener noreferrer">Ver Imagem</a></p>
                     )}
                     <p>
                       <strong>Status da Aplicação:</strong> {' '}

@@ -55,7 +55,7 @@ router.post('/', upload.single('imagem'), async (req, res) => {
       E-mail: ${email}
       Telefone: ${telefone}
       Mensagem: ${mensagem}
-      ${imagemUrl ? `Link da Imagem: http://localhost:5000${imagemUrl}` : 'Nenhuma imagem anexada.'}
+      ${imagemUrl ? `Link da Imagem: https://fio-alma-main.onrender.com${imagemUrl}` : 'Nenhuma imagem anexada.'}
 
       Status inicial: ${savedApplication.status}
       Data de Envio: ${savedApplication.dataEnvio}
@@ -69,7 +69,7 @@ router.post('/', upload.single('imagem'), async (req, res) => {
         <li><strong>E-mail:</strong> ${email}</li>
         <li><strong>Telefone:</strong> ${telefone}</li>
         <li><strong>Mensagem:</strong> ${mensagem}</li>
-        ${imagemUrl ? `<li><strong>Link da Imagem:</strong> <a href="http://localhost:5000${imagemUrl}">Ver Imagem</a></li>` : '<li>Nenhuma imagem anexada.</li>'}
+        ${imagemUrl ? `<li><strong>Link da Imagem:</strong> <a href="https://fio-alma-main.onrender.com${imagemUrl}">Ver Imagem</a></li>` : '<li>Nenhuma imagem anexada.</li>'}
       </ul>
       <p><strong>Status inicial:</strong> ${savedApplication.status}</p>
       <p><strong>Data de Envio:</strong> ${savedApplication.dataEnvio}</p>

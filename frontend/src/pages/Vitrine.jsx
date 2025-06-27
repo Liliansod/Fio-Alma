@@ -11,7 +11,7 @@ function Vitrine() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/products'); // Requisição GET para a API de produtos
+        const response = await fetch('https://fio-alma-main.onrender.com/api/products'); // Requisição GET para a API de produtos
         if (response.ok) {
           const data = await response.json();
           setProducts(data);
@@ -63,7 +63,7 @@ function Vitrine() {
               <ProductCard
                 key={product._id} // Usar _id do MongoDB como chave
                 id={product._id} // Passar o _id como ID para o link
-                imageUrl={product.imagens && product.imagens.length > 0 ? `http://localhost:5000${product.imagens[0]}` : 'https://placehold.co/300x300/e0e0e0/ffffff?text=No+Image'} // Fallback para imagem
+                imageUrl={product.imagens && product.imagens.length > 0 ? `https://fio-alma-main.onrender.com${product.imagens[0]}` : 'https://placehold.co/300x300/e0e0e0/ffffff?text=No+Image'} // Fallback para imagem
                 altText={product.titulo}
               />
             ))

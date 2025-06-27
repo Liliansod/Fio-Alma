@@ -40,7 +40,7 @@ function Participate() {
     try {
       // Faz a requisição POST para o backend
       // A URL da API será configurada no backend
-      const response = await fetch('http://localhost:5000/api/creator-applications', {
+      const response = await fetch('https://fio-alma-main.onrender.com/api/creator-applications', {
         method: 'POST',
         body: data, // FormData é enviado diretamente
       });

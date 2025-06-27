@@ -42,7 +42,7 @@ function CreatorDashboard() {
         throw new Error('Token de autenticação não encontrado.');
       }
 
-      const response = await fetch('http://localhost:5000/api/products/my-products', {
+      const response = await fetch('https://fio-alma-main.onrender.com/api/products/my-products', {
         headers: {
           'x-auth-token': token,
         },
@@ -53,7 +53,7 @@ function CreatorDashboard() {
         // Garantir que as URLs das imagens sejam completas
         const productsWithFullImageUrls = data.map(p => ({
           ...p,
-          imagens: p.imagens.map(img => `http://localhost:5000${img}`)
+          imagens: p.imagens.map(img => `https://fio-alma-main.onrender.com${img}`)
         }));
         setMyProducts(productsWithFullImageUrls);
       } else {
@@ -105,7 +105,7 @@ function CreatorDashboard() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/products', {
+      const response = await fetch('https://fio-alma-main.onrender.com/api/products', {
         method: 'POST',
         headers: {
           'x-auth-token': token,
@@ -141,7 +141,7 @@ function CreatorDashboard() {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+      const response = await fetch(`https://fio-alma-main.onrender.com/api/products/${productId}`, {
         method: 'DELETE',
         headers: {
           'x-auth-token': token,

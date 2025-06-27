@@ -26,11 +26,11 @@ function Detail() {
       setLoadingProduct(true);
       setProductError('');
       try {
-        const response = await fetch(`http://localhost:5000/api/products/${id}`); // Requisição GET para um produto específico
+        const response = await fetch(`https://fio-alma-main.onrender.com/api/products/${id}`); // Requisição GET para um produto específico
         if (response.ok) {
           const data = await response.json();
           // Certifique-se de que as URLs das imagens incluem o domínio do backend
-          const updatedImages = data.imagens.map(img => `http://localhost:5000${img}`);
+          const updatedImages = data.imagens.map(img => `https://fio-alma-main.onrender.com${img}`);
           setProduct({ ...data, imagens: updatedImages });
         } else if (response.status === 404) {
           setProductError('Produto não encontrado.');
@@ -62,7 +62,7 @@ function Detail() {
     setContactMessage('Enviando...');
 
     try {
-      const response = await fetch('http://localhost:5000/api/contacts', {
+      const response = await fetch('https://fio-alma-main.onrender.com/api/contacts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

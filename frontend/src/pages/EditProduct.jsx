@@ -26,7 +26,7 @@ function EditProduct() {
     const fetchProduct = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+        const res = await fetch(`https://fio-alma-main.onrender.com/api/products/${id}`, {
           headers: { 'x-auth-token': token }
         });
         if (!res.ok) {
@@ -91,7 +91,7 @@ function EditProduct() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+      const res = await fetch(`https://fio-alma-main.onrender.com/api/products/${id}`, {
         method: 'PUT',
         headers: {
           'x-auth-token': token,
@@ -192,7 +192,7 @@ function EditProduct() {
                   product.imagens.map((imgUrl, index) => (
                     <img
                       key={index}
-                      src={`http://localhost:5000${imgUrl}`}
+                      src={`https://fio-alma-main.onrender.com${imgUrl}`}
                       alt={`Imagem ${index + 1}`}
                       className="product-edit-image-preview"
                       onError={(e) => { e.target.onerror = null; e.target.src="https://placehold.co/80x80/e0e0e0/ffffff?text=Falha" }}

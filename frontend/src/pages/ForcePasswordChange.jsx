@@ -39,7 +39,7 @@ function ForcePasswordChange() {
     setMessage('Trocando senha...');
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/change-password', {
+      const response = await fetch('https://fio-alma-main.onrender.com/api/auth/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

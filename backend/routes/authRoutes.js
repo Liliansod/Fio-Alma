@@ -177,7 +177,7 @@ router.post('/admin/approve-creator', authMiddleware, async (req, res) => {
           <li><strong>Senha:</strong> <code>${user.password}</code></li>
         </ul>
         <p>Por segurança, você será solicitado a trocar esta senha no seu primeiro login.</p>
-        <p>Acesse o Espaço do Criador: <a href="http://localhost:3000/espaco-criador">Clique aqui</a></p>
+        <p>Acesse o Espaço do Criador: <a href="https://fio-alma-main.vercel.app/espaco-criador">Clique aqui</a></p>
         <p>Atenciosamente,<br>Equipe Ateliê Fio & Alma</p>
       `;
       // Correção: Para enviar a senha temporária no e-mail, precisamos capturá-la ANTES de user.save()
@@ -199,7 +199,7 @@ router.post('/admin/approve-creator', authMiddleware, async (req, res) => {
         <p>Olá <strong>${user.email}</strong>,</p>
         <p>Sua aplicação para o Ateliê Fio & Alma foi <strong>aprovada</strong>!</p>
         <p>Você já pode acessar o Espaço do Criador com suas credenciais existentes.</p>
-        <p>Acesse o Espaço do Criador: <a href="http://localhost:3000/espaco-criador">Clique aqui</a></p>
+        <p>Acesse o Espaço do Criador: <a href="https://fio-alma-main.vercel.app/espaco-criador">Clique aqui</a></p>
         <p>Atenciosamente,<br>Equipe Ateliê Fio & Alma</p>
       `;
     }
@@ -223,7 +223,7 @@ router.post('/admin/approve-creator', authMiddleware, async (req, res) => {
         Senha: ${passwordToSendInEmail}
 
         Por segurança, você será solicitado a trocar esta senha no seu primeiro login.
-        Acesse: http://localhost:3000/espaco-criador
+        Acesse: http:https://fio-alma-main.vercel.app/espaco-criador
 
         Atenciosamente,
         Equipe Ateliê Fio & Alma
@@ -238,7 +238,7 @@ router.post('/admin/approve-creator', authMiddleware, async (req, res) => {
           <li><strong>Senha:</strong> <code>${passwordToSendInEmail}</code></li>
         </ul>
         <p>Por segurança, você será solicitado a trocar esta senha no seu primeiro login.</p>
-        <p>Acesse o Espaço do Criador: <a href="http://localhost:3000/espaco-criador">Clique aqui</a></p>
+        <p>Acesse o Espaço do Criador: <a href="https://fio-alma-main.vercel.app/espaco-criador">Clique aqui</a></p>
         <p>Atenciosamente,<br>Equipe Ateliê Fio & Alma</p>
       `;
     }
@@ -334,7 +334,7 @@ router.post('/forgot-password', async (req, res) => {
 
     await user.save();
 
-    const resetUrl = `http://localhost:3000/redefinir-senha/${resetToken}`;
+    const resetUrl = `https://fio-alma-main.vercel.app/redefinir-senha/${resetToken}`;
 
     const subject = 'Redefinição de Senha - Ateliê Fio & Alma';
     const text = `Você solicitou a redefinição de senha. Use este link para redefinir sua senha: ${resetUrl}\n\nEste link é válido por 1 hora.`;

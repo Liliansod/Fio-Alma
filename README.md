@@ -97,7 +97,7 @@ Inicie o Servidor Backend:
 
 npm run dev
 
-O servidor será iniciado em http://localhost:5000.
+O servidor será iniciado em https://fio-alma-main.onrender.com.
 
 2. Configuração do Frontend
 Navegue para a Pasta do Frontend:
@@ -112,7 +112,7 @@ Inicie o Aplicativo Frontend:
 
 npm start
 
-O aplicativo será aberto em http://localhost:3000 no seu navegador padrão.
+O aplicativo será aberto em https://fio-alma-main.vercel.app/ no seu navegador padrão.
 
 Rotas da API (Backend)
 Aqui está um resumo das rotas principais da API:
