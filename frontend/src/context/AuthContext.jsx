@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
       // Por simplicidade, aqui vamos apenas simular a obtenção do usuário.
       // Em uma aplicação real, você faria:
       /*
-      fetch('http://localhost:5000/api/auth/me', {
+      fetch('https://fio-alma-main.onrender.com/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
